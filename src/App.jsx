@@ -12,6 +12,7 @@ import {
   CameraControls,
   Box,
 } from "@react-three/drei";
+import { useControls, button, buttonGroup, folder } from "leva";
 
 import Suzi from "./Suzi";
 import Facetrack from "./Facetrack";
@@ -32,6 +33,13 @@ function Scene() {
 
   const { camera } = useThree();
 
+  const userConfig = useControls({
+    user: folder({
+      position: [0, 0.2, 0.75],
+      fov: { value: 75, min: 0, max: 180 },
+    }),
+  });
+
   return (
     <>
       <Center top position-z={0.1}>
@@ -51,7 +59,13 @@ function Scene() {
         <meshStandardMaterial color="white" />
       </Box> */}
 
-      <Facetrack />
+      <group position-y={-0.11}>
+        <group position={userConfig.position}>
+          <Facetrack>
+            <PerspectiveCamera makeDefault fov={userConfig.fov} near={0.01} />
+          </Facetrack>
+        </group>
+      </group>
 
       <Ground />
       <Shadows />

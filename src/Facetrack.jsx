@@ -58,14 +58,17 @@ loop();
 
 const { DEG2RAD } = THREE.MathUtils;
 
-export default function Facetrack() {
+//
+//
+//
+
+export default function Facetrack({ ipd = 66, children }) {
   const [webcamConfig, setWebcamConfig] = useControls(() => ({
     webcam: folder({
       resolution: [640, 480],
       fov: { value: 24.5, min: 0, max: 180 },
       eyeL: [464, 258, 7],
       eyeR: [351, 250, 4],
-
       // forehead
       // chin
       zero: button((get) => {
@@ -87,14 +90,6 @@ export default function Facetrack() {
   }));
   // console.log("webcamConfig=", webcamConfig);
 
-  const userConfig = useControls({
-    user: folder({
-      position: [0, 0.2, 0.75],
-      fov: { value: 75, min: 0, max: 180 },
-      ipd: { value: 66, min: 55, max: 75 }, // mm
-    }),
-  });
-
   //
 
   // Une pomme de 8cm s'affiche 50px, avec une web cam 70° 640x480)
@@ -102,11 +97,11 @@ export default function Facetrack() {
   const distFromWebcam = useCallback(
     (diamPx) => {
       return (
-        ((webcamConfig.resolution[1] / diamPx) * (userConfig.ipd / 1000)) /
+        ((webcamConfig.resolution[1] / diamPx) * (ipd / 1000)) /
         (2 * Math.tan((webcamConfig.fov / 2) * DEG2RAD))
       );
     },
-    [webcamConfig.resolution, webcamConfig.fov, userConfig.ipd]
+    [webcamConfig.resolution, webcamConfig.fov, ipd]
   );
   window.dist = distFromWebcam;
 
@@ -169,19 +164,13 @@ export default function Facetrack() {
 
   return (
     <>
-      <group position-y={-0.11}>
-        <group position={userConfig.position}>
-          <group position={offset}>
-            <PerspectiveCamera makeDefault fov={userConfig.fov} near={0.01} />
-          </group>
-        </group>
-        <Html wrapperClass="toto">
-          <Webcam {...webcamConfig}>
-            <div className="eyeL" />
-            <div className="eyeR" />
-          </Webcam>
-        </Html>
-      </group>
+      <group position={offset}>{children}</group>
+      <Html wrapperClass="toto">
+        <Webcam {...webcamConfig}>
+          <div className="eyeL" />
+          <div className="eyeR" />
+        </Webcam>
+      </Html>
     </>
   );
 }
