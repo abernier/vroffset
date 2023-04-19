@@ -13,9 +13,32 @@ import {
   Box,
 } from "@react-three/drei";
 import { useControls, button, buttonGroup, folder } from "leva";
+import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection";
 
 // import Suzi from "./Suzi";
 import { MeshStandardMaterial } from "three";
+
+//
+// face detection
+//
+
+const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
+const detectorConfig = {
+  runtime: "mediapipe",
+  solutionPath: "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh",
+};
+const detector = await faceLandmarksDetection.createDetector(
+  model,
+  detectorConfig
+);
+
+const $video = document.createElement("video");
+const stream = await navigator.mediaDevices.getUserMedia({
+  audio: false,
+  video: { facingMode: "user" },
+});
+$video.oncanplay = () => $video.play();
+$video.srcObject = stream;
 
 // {x: 464.33902740478516, y: 258.05660247802734, z: 7.337772846221924, name: 'leftEye'}
 // {x: 351.0555648803711, y: 250.44084548950195, z: 4.3555402755737305, name: 'rightEye'}
@@ -23,17 +46,6 @@ import { MeshStandardMaterial } from "three";
 const { DEG2RAD } = THREE.MathUtils;
 
 export default function App() {
-  const [video] = useState(document.createElement("video"));
-
-  // const [detector, setDetector] = useState();
-  // useEffect(() => {
-  //   faceLandmarksDetection
-  //     .createDetector(model)
-  //     .then(setDetector)
-  //     .catch((err) => console.error(err));
-  // }, []);
-  // useEffect(() => console.log(detector), [detector]);
-
   const [webcamConfig, setWebcamConfig] = useControls(() => ({
     webcam: folder({
       resolution: [640, 480],
@@ -156,8 +168,8 @@ export default function App() {
         <Scene />
       </Canvas>
       <Webcam {...webcamConfig}>
-        <div class="eyeL" />
-        <div class="eyeR" />
+        <div className="eyeL" />
+        <div className="eyeR" />
       </Webcam>
     </>
   );
@@ -198,6 +210,13 @@ function Scene() {
   const cameraControlsRef = useRef();
 
   const { camera } = useThree();
+
+  useFrame(async () => {
+    if (!$video.paused) {
+      const faces = await detector.estimateFaces($video);
+      console.log("faces=", faces);
+    }
+  });
 
   return (
     <>
