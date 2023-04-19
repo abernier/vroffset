@@ -35,9 +35,19 @@ const detector = await faceLandmarksDetection.createDetector(
 const $video = document.createElement("video");
 const stream = await navigator.mediaDevices.getUserMedia({
   audio: false,
-  video: { facingMode: "user" },
+  video: {
+    facingMode: "user",
+    // width: 9999, // ask for max res
+  },
 });
-$video.oncanplay = () => $video.play();
+console.log("stream=", stream);
+const streamSettings = stream.getTracks()[0].getSettings(); // https://stackoverflow.com/a/47613536/133327
+console.log("streamSettings=", streamSettings);
+$video.onloadedmetadata = () => {
+  console.log($video.videoWidth, $video.videoHeight);
+  $video.play();
+};
+// $video.oncanplay = () => $video.play();
 $video.srcObject = stream;
 
 // {x: 464.33902740478516, y: 258.05660247802734, z: 7.337772846221924, name: 'leftEye'}
@@ -212,12 +222,12 @@ function Scene() {
 
   const { camera } = useThree();
 
-  useFrame(async () => {
-    if (!$video.paused) {
-      const faces = await detector.estimateFaces($video);
-      console.log("faces=", faces);
-    }
-  });
+  // useFrame(async () => {
+  //   if (!$video.paused) {
+  //     const faces = await detector.estimateFaces($video);
+  //     console.log("faces=", faces);
+  //   }
+  // });
 
   return (
     <>
