@@ -121,8 +121,9 @@ export default function App() {
   window.dist = distFromWebcam;
 
   // const [offset, setOffset] = useState([0, 0, 0]);
-  const [{ offset }, set] = useControls(() => ({
+  const [{ offset, sensitivity }, set] = useControls(() => ({
     offset: { value: [0, 0, 0], step: 0.05 },
+    sensitivity: { value: 0.08, min: 0.0001, max: 2 },
   }));
 
   useEffect(() => {
@@ -163,7 +164,11 @@ export default function App() {
       const ratio = d / l;
 
       set({
-        offset: [x * ratio, y * ratio, -z],
+        offset: [
+          x * ratio * sensitivity,
+          y * ratio * sensitivity,
+          -z * sensitivity,
+        ],
       });
     }
   }, [
@@ -173,6 +178,7 @@ export default function App() {
     webcamConfig.eyeR0,
     set,
     distFromWebcam,
+    sensitivity,
   ]);
 
   return (
