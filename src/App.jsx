@@ -195,6 +195,7 @@ export const Webcam = styled.div`
   }
 
   .eyeL {
+    color: blue;
     left: ${({ eyeL }) => eyeL[0]}px;
     top: ${({ eyeL }) => eyeL[1]}px;
   }
