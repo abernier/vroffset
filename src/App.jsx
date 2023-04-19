@@ -14,6 +14,7 @@ import {
 } from "@react-three/drei";
 import { useControls, button, buttonGroup, folder } from "leva";
 import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection";
+import * as faceDetection from "@tensorflow-models/face-detection";
 
 // import Suzi from "./Suzi";
 import { MeshStandardMaterial } from "three";
@@ -22,6 +23,7 @@ import { MeshStandardMaterial } from "three";
 // face detection
 //
 
+// const model = faceDetection.SupportedModels.MediaPipeFaceDetector;
 const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
 const detectorConfig = {
   runtime: "mediapipe",
@@ -50,6 +52,17 @@ $video.onloadedmetadata = () => {
 // $video.oncanplay = () => $video.play();
 $video.srcObject = stream;
 
+let faces = [];
+async function loop() {
+  if (!$video.paused) {
+    faces = await detector.estimateFaces($video);
+    // console.log("faces=", faces[0]?.keypoints[133]);
+  }
+
+  requestAnimationFrame(loop);
+}
+loop();
+
 // {x: 464.33902740478516, y: 258.05660247802734, z: 7.337772846221924, name: 'leftEye'}
 // {x: 351.0555648803711, y: 250.44084548950195, z: 4.3555402755737305, name: 'rightEye'}
 
@@ -69,6 +82,15 @@ export default function App() {
         setWebcamConfig({ eyeL0: [...get("webcam.eyeL")] });
         setWebcamConfig({ eyeR0: [...get("webcam.eyeR")] });
       }),
+      update: button((get) => {
+        const eyeL = faces[0]?.keypoints[386];
+        console.log("eyeL", eyeL);
+        const eyeR = faces[0]?.keypoints[159];
+        console.log("eyeR", eyeR);
+        if (eyeL) setWebcamConfig({ eyeL: [eyeL.x, eyeL.y, eyeL.z] });
+        if (eyeR) setWebcamConfig({ eyeR: [eyeR.x, eyeR.y, eyeR.z] });
+      }),
+
       eyeL0: [0, 0, 0],
       eyeR0: [0, 0, 0],
     }),
@@ -97,20 +119,6 @@ export default function App() {
     [webcamConfig.resolution, webcamConfig.fov, userConfig.ipd]
   );
   window.dist = distFromWebcam;
-
-  //
-  // 👁️‍🗨️ Webcam
-  //
-
-  // const webcam = useMemo(() => {
-  //   const cam = new THREE.PerspectiveCamera(
-  //     webcamConfig.fov,
-  //     webcamConfig.resolution[0] / webcamConfig.resolution[1]
-  //   );
-  //   cam.position.set(...webcamConfig.position);
-  //   cam.setRotationFromEuler(new THREE.Euler(...webcamConfig.rotation));
-  //   return cam;
-  // }, [webcamConfig]);
 
   // const [offset, setOffset] = useState([0, 0, 0]);
   const [{ offset }, set] = useControls(() => ({
@@ -155,7 +163,7 @@ export default function App() {
       const ratio = d / l;
 
       set({
-        offset: [-x * ratio, -y * ratio, -z],
+        offset: [x * ratio, y * ratio, -z],
       });
     }
   }, [
