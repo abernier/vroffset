@@ -11,12 +11,13 @@ import {
   PerspectiveCamera,
   CameraControls,
   Box,
+  Html,
 } from "@react-three/drei";
 import { useControls, button, buttonGroup, folder } from "leva";
 import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection";
 import * as faceDetection from "@tensorflow-models/face-detection";
 
-// import Suzi from "./Suzi";
+import Suzi from "./Suzi";
 import { MeshStandardMaterial } from "three";
 
 //
@@ -53,10 +54,13 @@ $video.onloadedmetadata = () => {
 $video.srcObject = stream;
 
 let faces = [];
+window.faces = faces;
 async function loop() {
   if (!$video.paused) {
-    faces = await detector.estimateFaces($video);
-    // console.log("faces=", faces[0]?.keypoints[133]);
+    faces = await detector
+      .estimateFaces($video)
+      .catch((err) => console.error(err));
+    // console.log("faces=", faces);
   }
 
   requestAnimationFrame(loop);
@@ -69,6 +73,59 @@ loop();
 const { DEG2RAD } = THREE.MathUtils;
 
 export default function App() {
+  return (
+    <>
+      <Canvas shadows>
+        <Scene />
+      </Canvas>
+    </>
+  );
+}
+
+function Scene() {
+  const meshRef = useRef();
+  const cameraControlsRef = useRef();
+
+  const { camera } = useThree();
+
+  // useFrame(async () => {
+  //   if (!$video.paused) {
+  //     const faces = await detector.estimateFaces($video);
+  //     console.log("faces=", faces);
+  //   }
+  // });
+
+  return (
+    <>
+      <Center top position-z={0.1}>
+        <Suzi ref={meshRef} rotation={[-0.63, 0, 0]} scale={0.1} />
+      </Center>
+
+      {/* <Box
+        args={[0.1, 0.1, 0.1]}
+        position={[0, 0.1 / 2, 0.1 / 2]}
+        receiveShadow
+        castShadow
+      >
+        <meshStandardMaterial color="red" />
+      </Box> */}
+
+      {/* <Box args={[0.7, 0.7, 0.7]} position={[0, -0.35, 0.35]}>
+        <meshStandardMaterial color="white" />
+      </Box> */}
+
+      <Toto />
+
+      <Ground />
+      <Shadows />
+
+      {/* <CameraControls ref={cameraControlsRef} /> */}
+      <Environment preset="city" />
+    </>
+  );
+}
+
+function Toto() {
   const [webcamConfig, setWebcamConfig] = useControls(() => ({
     webcam: folder({
       resolution: [640, 480],
@@ -164,11 +221,7 @@ export default function App() {
       const ratio = d / l;
 
       set({
-        offset: [
-          x * ratio * sensitivity,
-          y * ratio * sensitivity,
-          -z * sensitivity,
-        ],
+        offset: [x * ratio * sensitivity, y * ratio * sensitivity, -z],
       });
     }
   }, [
@@ -183,21 +236,23 @@ export default function App() {
 
   return (
     <>
-      <Canvas shadows>
+      <group position-y={-0.11}>
         <group position={userConfig.position}>
           <group position={offset}>
-            <PerspectiveCamera makeDefault fov={userConfig.fov} />
+            <PerspectiveCamera makeDefault fov={userConfig.fov} near={0.01} />
           </group>
         </group>
-        <Scene />
-      </Canvas>
-      <Webcam {...webcamConfig}>
-        <div className="eyeL" />
-        <div className="eyeR" />
-      </Webcam>
+        <Html wrapperClass="toto">
+          <Webcam {...webcamConfig}>
+            <div className="eyeL" />
+            <div className="eyeR" />
+          </Webcam>
+        </Html>
+      </group>
     </>
   );
 }
+
 export const Webcam = styled.div`
   color: yellowgreen;
   position: fixed;
@@ -230,58 +285,20 @@ export const Webcam = styled.div`
   }
 `;
 
-function Scene() {
-  const meshRef = useRef();
-  const cameraControlsRef = useRef();
-
-  const { camera } = useThree();
-
-  // useFrame(async () => {
-  //   if (!$video.paused) {
-  //     const faces = await detector.estimateFaces($video);
-  //     console.log("faces=", faces);
-  //   }
-  // });
-
-  return (
-    <>
-      {/* <Suzi ref={meshRef} rotation={[-0.63, 0, 0]} /> */}
-      <Box
-        args={[0.1, 0.1, 0.1]}
-        position={[0, 0.1 / 2, 0.1 / 2]}
-        receiveShadow
-        castShadow
-      >
-        <meshStandardMaterial color="red" />
-      </Box>
-
-      <Box args={[0.7, 0.7, 0.7]} position={[0, -0.35, 0.35]}>
-        <meshStandardMaterial color="white" />
-      </Box>
-
-      <Ground />
-      <Shadows />
-
-      {/* <CameraControls ref={cameraControlsRef} /> */}
-      <Environment preset="city" />
-    </>
-  );
-}
-
 function Ground() {
   const gridConfig = {
-    cellSize: 0.5,
+    cellSize: 0.125,
     cellThickness: 0.5,
     cellColor: "#6f6f6f",
-    sectionSize: 3,
+    sectionSize: 1,
     sectionThickness: 1,
-    sectionColor: "#9d4b4b",
-    fadeDistance: 30,
-    fadeStrength: 1,
+    // sectionColor: "#9d4b4b",
+    fadeDistance: 10,
+    fadeStrength: 2,
     followCamera: false,
     infiniteGrid: true,
   };
-  return <Grid position={[0, 0, 0]} args={[10.5, 10.5]} {...gridConfig} />;
+  return <Grid position={[0, -0.01, 0]} args={[10.5, 10.5]} {...gridConfig} />;
 }
 
 const Shadows = memo(() => (

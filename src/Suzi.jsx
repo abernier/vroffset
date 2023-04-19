@@ -37,4 +37,23 @@ const Suzi = forwardRef((props, ref) => {
   return <primitive object={scene} {...props} />;
 });
 
+// const Suzi = forwardRef((props, ref) => {
+//   const { nodes } = useGLTF(
+//     "https://market-assets.fra1.cdn.digitaloceanspaces.com/market-assets/models/suzanne-high-poly/model.gltf"
+//   );
+//   return (
+//     <>
+//       <mesh
+//         ref={ref}
+//         castShadow
+//         receiveShadow
+//         geometry={nodes.Suzanne.geometry}
+//         {...props}
+//       >
+//         <meshStandardMaterial color="#9d4b4b" />
+//       </mesh>
+//     </>
+//   );
+// });
+
 export default Suzi;
