@@ -6,6 +6,8 @@ import { useControls, button, buttonGroup, folder } from "leva";
 import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection";
 // import * as faceDetection from "@tensorflow-models/face-detection";
 
+import Facemesh from "./Facemesh";
+
 //
 // face detection
 //
@@ -76,6 +78,7 @@ export default function Facetrack({ ipd = 66, children }) {
         setWebcamConfig({ eyeR0: [...get("webcam.eyeR")] });
       }),
       update: button((get) => {
+        // console.log(JSON.stringify(faces[0]));
         const eyeL = faces[0]?.keypoints[386];
         console.log("eyeL", eyeL);
         const eyeR = faces[0]?.keypoints[159];
@@ -164,6 +167,9 @@ export default function Facetrack({ ipd = 66, children }) {
 
   return (
     <>
+      <Facemesh face={faces[0]} width={0.5}>
+        <meshStandardMaterial side={THREE.DoubleSide} flatShading={true} />
+      </Facemesh>
       <group position={offset}>{children}</group>
       <Html wrapperClass="toto">
         <Webcam {...webcamConfig}>

@@ -16,6 +16,7 @@ import { useControls, button, buttonGroup, folder } from "leva";
 
 import Suzi from "./Suzi";
 import Facetrack from "./Facetrack";
+import Facemesh from "./Facemesh";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ function Scene() {
   const { camera } = useThree();
 
   const userConfig = useControls({
+    camera: { value: "cc", options: ["user", "cc"] },
     user: folder({
       position: [0, 0.2, 0.75],
       fov: { value: 75, min: 0, max: 180 },
@@ -42,9 +44,9 @@ function Scene() {
 
   return (
     <>
-      <Center top position-z={0.1}>
+      {/* <Center top position-z={0.1}>
         <Suzi ref={meshRef} rotation={[-0.63, 0, 0]} scale={0.1} />
-      </Center>
+      </Center> */}
 
       {/* <Box
         args={[0.1, 0.1, 0.1]}
@@ -59,18 +61,35 @@ function Scene() {
         <meshStandardMaterial color="white" />
       </Box> */}
 
-      <group position-y={-0.11}>
-        <group position={userConfig.position}>
-          <Facetrack>
-            <PerspectiveCamera makeDefault fov={userConfig.fov} near={0.01} />
-          </Facetrack>
-        </group>
+      <axesHelper />
+
+      <group position={userConfig.position}>
+        <Facetrack>
+          <PerspectiveCamera
+            makeDefault={userConfig.camera === "user"}
+            fov={userConfig.fov}
+            near={0.01}
+          />
+        </Facetrack>
       </group>
 
       <Ground />
       <Shadows />
 
-      {/* <CameraControls ref={cameraControlsRef} /> */}
+      <CameraControls
+        ref={cameraControlsRef}
+        makeDefault={userConfig.camera === "cc"}
+      />
+
+      <ambientLight intensity={0.2} />
+      <spotLight
+        castShadow
+        position={[1, 5, 3]}
+        penumbra={0.2}
+        shadow-bias={-0.005}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+      />
       <Environment preset="city" />
     </>
   );
@@ -83,7 +102,7 @@ function Ground() {
     cellColor: "#6f6f6f",
     sectionSize: 1,
     sectionThickness: 1,
-    // sectionColor: "#9d4b4b",
+    // sectionColor: "#f7d76d",
     fadeDistance: 10,
     fadeStrength: 2,
     followCamera: false,
